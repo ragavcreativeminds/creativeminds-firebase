@@ -1,5 +1,12 @@
 import { useEffect } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import type { GetServerSidePropsContext, NextPage } from "next";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useRecoilState } from "recoil";
@@ -15,9 +22,13 @@ import { auth, firestore } from "../../../firebase/clientApp";
 
 interface CommunityPageProps {
   communityData: Community;
+  onlineMembers: number;
 }
 
-const CommunityPage: NextPage<CommunityPageProps> = ({ communityData }) => {
+const CommunityPage: NextPage<CommunityPageProps> = ({
+  communityData,
+  onlineMembers,
+}) => {
   const [user, loadingUser] = useAuthState(auth);
 
   const [communityStateValue, setCommunityStateValue] =
@@ -45,6 +56,14 @@ const CommunityPage: NextPage<CommunityPageProps> = ({ communityData }) => {
       currentCommunity: communityData,
     }));
   }, [communityData]);
+
+  useEffect(() => {
+    setCommunityStateValue((prev) => ({
+      ...prev,
+
+      onlineMembers: onlineMembers,
+    }));
+  }, [onlineMembers]);
 
   // Community was not found in the database
   if (!communityData) {
@@ -85,6 +104,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       context.query.community as string
     );
     const communityDoc = await getDoc(communityDocRef);
+
+    // query for online user against the community
+    const userPresenceQuery = query(
+      collection(firestore, "userpresence"),
+      where("communityId", "==", context.query.community),
+      where("online", "==", true)
+    );
+
+    const onlineMembers = (await getDocs(userPresenceQuery)).size;
+
     return {
       props: {
         communityData: communityDoc.exists()
@@ -92,6 +121,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
               safeJsonStringify({ id: communityDoc.id, ...communityDoc.data() }) // needed for dates
             )
           : "",
+        onlineMembers: onlineMembers,
       },
     };
   } catch (error) {

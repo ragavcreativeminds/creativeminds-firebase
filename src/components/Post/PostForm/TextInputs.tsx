@@ -1,67 +1,49 @@
 import React from "react";
 import { Stack, Input, Textarea, Flex, Button } from "@chakra-ui/react";
 
+
 type TextInputsProps = {
-  textInputs: {
-    title: string;
-    body: string;
-  };
-  onChange: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void;
-  handleCreatePost: () => void;
-  loading: boolean;
+  textInput: string;
+  onChange: any;
+  placeHolder: string;
+  height: string;
 };
 
 const TextInputs: React.FC<TextInputsProps> = ({
-  textInputs,
+  textInput,
   onChange,
-  handleCreatePost,
-  loading,
+  placeHolder,
+  height,
 }) => {
+  const textChange = (_value: string) => {
+    onChange(_value);
+  };
+
+  const onTextChange = ({
+    target: { value },
+  }: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    onChange(value);
+  };
+
   return (
     <Stack spacing={3} width="100%">
-      <Input
-        name="title"
-        value={textInputs.title}
-        onChange={onChange}
-        _placeholder={{ color: "gray.500" }}
+      <Textarea
+        value={textInput}
+        onChange={onTextChange}
+        _placeholder={{ opacity: 1, color: 'gray.700' , fontStyle:'italic', fontWeight:600}}
         _focus={{
           outline: "none",
           bg: "white",
-          border: "1px solid",
-          borderColor: "black",
+         
         }}
         fontSize="10pt"
         borderRadius={4}
-        placeholder="Title"
+        color={'#00000'}
+        fontWeight={900}
+        height={height}
+        placeholder={placeHolder}
+        focusBorderColor='blue.500'
       />
-      <Textarea
-        name="body"
-        value={textInputs.body}
-        onChange={onChange}
-        fontSize="10pt"
-        placeholder="Text (optional)"
-        _placeholder={{ color: "gray.500" }}
-        _focus={{
-          outline: "none",
-          bg: "white",
-          border: "1px solid",
-          borderColor: "black",
-        }}
-        height="100px"
-      />
-      <Flex justify="flex-end">
-        <Button
-          height="34px"
-          padding="0px 30px"
-          disabled={!textInputs.title}
-          isLoading={loading}
-          onClick={handleCreatePost}
-        >
-          Post
-        </Button>
-      </Flex>
     </Stack>
   );
 };

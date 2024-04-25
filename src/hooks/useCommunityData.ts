@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { doc, getDoc, increment, writeBatch } from "firebase/firestore";
+import {
+  and,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  increment,
+  query,
+  where,
+  writeBatch,
+} from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useRecoilState, useSetRecoilState } from "recoil";
@@ -12,6 +22,7 @@ import {
 } from "../atoms/communitiesAtom";
 import { auth, firestore } from "../firebase/clientApp";
 import { getMySnippets } from "../helpers/firestore";
+import { UserPresence, userPresenceState } from "../atoms/userPresenceAtom";
 
 // Add ssrCommunityData near end as small optimization
 const useCommunityData = (ssrCommunityData?: boolean) => {
@@ -22,6 +33,8 @@ const useCommunityData = (ssrCommunityData?: boolean) => {
   const setAuthModalState = useSetRecoilState(authModalState);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [userPresenceStateValue, setUserPresenceStateValue] =
+    useRecoilState(userPresenceState);
 
   useEffect(() => {
     if (!user || !!communityStateValue.mySnippets.length) return;
@@ -81,7 +94,10 @@ const useCommunityData = (ssrCommunityData?: boolean) => {
     setLoading(false);
   };
 
-  const onJoinLeaveCommunity = (community: Community, isJoined?: boolean) => {
+  const onJoinLeaveCommunity = async (
+    community: Community,
+    isJoined?: boolean
+  ) => {
     console.log("ON JOIN LEAVE", community.id);
 
     if (!user) {
@@ -90,6 +106,7 @@ const useCommunityData = (ssrCommunityData?: boolean) => {
     }
 
     setLoading(true);
+
     if (isJoined) {
       leaveCommunity(community.id);
       return;
@@ -106,6 +123,8 @@ const useCommunityData = (ssrCommunityData?: boolean) => {
         communityId: community.id,
         imageURL: community.imageURL || "",
       };
+
+      // setting communitySnippets on user
       batch.set(
         doc(
           firestore,
@@ -115,8 +134,24 @@ const useCommunityData = (ssrCommunityData?: boolean) => {
         newSnippet
       );
 
+      // setting numberOFMembers on communities
       batch.update(doc(firestore, "communities", community.id), {
         numberOfMembers: increment(1),
+      });
+
+      // creating userPresence against community
+      
+      const userPresenceDocRef = doc(
+        firestore,
+        "userpresence",
+        community.id +'-'+ user?.uid
+      );
+
+      batch.set(userPresenceDocRef, {
+        userId: user?.uid!,
+        online: true,
+        communityId: community.id,
+        id: community.id +'-'+ user?.uid,
       });
 
       // perform batch writes
@@ -145,6 +180,15 @@ const useCommunityData = (ssrCommunityData?: boolean) => {
         numberOfMembers: increment(-1),
       });
 
+      // delete userPresence againt community IF EXIST
+      const userPresenceDocRef = doc(
+        firestore,
+        "userpresence",
+        communityId +'-'+ user?.uid
+      );
+
+      batch.delete(userPresenceDocRef)
+
       await batch.commit();
 
       setCommunityStateValue((prev) => ({
@@ -158,6 +202,8 @@ const useCommunityData = (ssrCommunityData?: boolean) => {
     }
     setLoading(false);
   };
+
+  
 
   // useEffect(() => {
   //   if (ssrCommunityData) return;

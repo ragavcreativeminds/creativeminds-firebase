@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Flex, Text } from "@chakra-ui/react";
 import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { ModalView } from "../../../atoms/authModalAtom";
-import { auth } from "../../../firebase/clientApp";
+import { auth, firestore } from "../../../firebase/clientApp";
 import { FIREBASE_ERRORS } from "../../../firebase/errors";
 import InputItem from "../../Layout/InputItem";
+import { doc, setDoc } from "firebase/firestore";
+import { User } from "firebase/auth";
 
 type SignUpProps = {
   toggleView: (view: ModalView) => void;
@@ -17,7 +19,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView }) => {
     confirmPassword: "",
   });
   const [formError, setFormError] = useState("");
-  const [createUserWithEmailAndPassword, _, loading, authError] =
+  const [createUserWithEmailAndPassword, userCred, loading, authError] =
     useCreateUserWithEmailAndPassword(auth);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -30,6 +32,11 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView }) => {
     if (form.password !== form.confirmPassword) {
       return setFormError("Passwords do not match");
     }
+
+    // for (let index = 0; index < 100; index++) {
+    //   // Valid form inputs
+    //   createUserWithEmailAndPassword('test'+index+'@gmail.com', form.password);
+    // }
 
     // Valid form inputs
     createUserWithEmailAndPassword(form.email, form.password);
@@ -44,6 +51,16 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView }) => {
     }));
   };
 
+  const creatUserDocument = async (user: User) => {
+    const userDocRef = doc(firestore, "users", user.uid);
+    setDoc(userDocRef, JSON.parse(JSON.stringify(user)));
+  };
+
+  useEffect(() => {
+    if (userCred) {
+      creatUserDocument(userCred.user);
+    }
+  }, [userCred]);
   return (
     <form onSubmit={onSubmit}>
       <InputItem

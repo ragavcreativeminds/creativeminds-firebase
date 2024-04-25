@@ -8,6 +8,7 @@ export interface Community {
   privacyType: "public" | "restrictied" | "private";
   createdAt?: Timestamp;
   imageURL?: string;
+  users: [];
 }
 
 export interface CommunitySnippet {
@@ -22,13 +23,16 @@ interface CommunityState {
     | { [key: string]: Community }
     | Community
     | boolean
+    | number
     | undefined;
   mySnippets: CommunitySnippet[];
+
   initSnippetsFetched: boolean;
   visitedCommunities: {
     [key: string]: Community;
   };
   currentCommunity: Community;
+  onlineMembers: number;
 }
 
 export const defaultCommunity: Community = {
@@ -36,6 +40,7 @@ export const defaultCommunity: Community = {
   creatorId: "",
   numberOfMembers: 0,
   privacyType: "public",
+  users: [],
 };
 
 export const defaultCommunityState: CommunityState = {
@@ -43,6 +48,7 @@ export const defaultCommunityState: CommunityState = {
   initSnippetsFetched: false,
   visitedCommunities: {},
   currentCommunity: defaultCommunity,
+  onlineMembers: 0
 };
 
 export const communityState = atom<CommunityState>({

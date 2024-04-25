@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -20,10 +20,11 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, firestore, storage } from "../../firebase/clientApp";
 import { Community, communityState } from "../../atoms/communitiesAtom";
 import moment from "moment";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { FaReddit } from "react-icons/fa";
 import { getDownloadURL, ref, uploadString } from "firebase/storage";
 import { doc, updateDoc } from "firebase/firestore";
+import usePageVisibility from "../../react-page-visibility/usePageVisibility";
 
 type AboutProps = {
   communityData: Community;
@@ -41,7 +42,10 @@ const About: React.FC<AboutProps> = ({
   const [user] = useAuthState(auth); // will revisit how 'auth' state is passed
   const router = useRouter();
   const selectFileRef = useRef<HTMLInputElement>(null);
-  const setCommunityStateValue = useSetRecoilState(communityState);
+  // const setCommunityStateValue = useSetRecoilState(communityState);
+
+  const [communityStateValue, setCommunityStateValue] =
+    useRecoilState(communityState);
 
   // April 24 - moved this logic to custom hook in tutorial build (useSelectFile)
   const [selectedFile, setSelectedFile] = useState<string>();
@@ -140,10 +144,12 @@ const About: React.FC<AboutProps> = ({
                   </Text>
                   <Text>Members</Text>
                 </Flex>
-                <Flex direction="column" flexGrow={1}>
-                  <Text>1</Text>
-                  <Text>Online</Text>
-                </Flex>
+                {communityStateValue.onlineMembers && (
+                  <Flex direction="column" flexGrow={1}>
+                    <Text>{communityStateValue.onlineMembers}</Text>
+                    <Text>Online</Text>
+                  </Flex>
+                )}
               </Flex>
               <Divider />
               <Flex

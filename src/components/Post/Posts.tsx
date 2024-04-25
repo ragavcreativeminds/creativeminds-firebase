@@ -248,7 +248,7 @@ const Posts: React.FC<PostsProps> = ({
     setLoading(false);
   };
 
-  console.log("HERE IS POST STATE", postStateValue);
+//  console.log("HERE IS POST STATE", postStateValue);
 
   return (
     <>

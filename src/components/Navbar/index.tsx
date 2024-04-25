@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Flex, Image } from "@chakra-ui/react";
 import { User } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -7,18 +7,24 @@ import {
   defaultMenuItem,
   directoryMenuState,
 } from "../../atoms/directoryMenuAtom";
-import { auth } from "../../firebase/clientApp";
+import { auth, firestore } from "../../firebase/clientApp";
 import Directory from "./Directory";
 import RightContent from "./RightContent";
 import SearchInput from "./SearchInput";
-import router from "next/router";
+
 import useDirectory from "../../hooks/useDirectory";
+import usePageVisibility from "../../react-page-visibility/usePageVisibility";
+import { collection, doc, updateDoc } from "firebase/firestore";
+import { updateUserPresence } from "../../helpers/firestore";
+import useUserPresence from "../../hooks/useUserPresence";
 
 const Navbar: React.FC = () => {
   const [user] = useAuthState(auth);
 
   // Use <Link> for initial build; implement directory logic near end
   const { onSelectMenuItem } = useDirectory();
+
+  useUserPresence(user);
 
   return (
     <Flex

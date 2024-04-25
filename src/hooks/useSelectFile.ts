@@ -1,20 +1,26 @@
 import React, { useState } from "react";
 
 const useSelectFile = () => {
-  const [selectedFile, setSelectedFile] = useState<string>();
+  const [selectedFile, setSelectedFile] = useState<any>();
+
+  const [selectedFileUpload, setSelectedFileUpload] = useState<any>();
 
   const onSelectFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log("THIS IS HAPPENING", event);
 
+    var imageFile = event.target.files?.[0];
+
+    setSelectedFileUpload(imageFile);
+
     const reader = new FileReader();
 
-    if (event.target.files?.[0]) {
-      reader.readAsDataURL(event.target.files[0]);
+    if (imageFile) {
+      reader.readAsDataURL(imageFile);
     }
 
     reader.onload = (readerEvent) => {
       if (readerEvent.target?.result) {
-        setSelectedFile(readerEvent.target.result as string);
+        setSelectedFile(readerEvent.target.result);
       }
     };
   };
@@ -22,6 +28,8 @@ const useSelectFile = () => {
   return {
     selectedFile,
     setSelectedFile,
+    selectedFileUpload,
+    setSelectedFileUpload,
     onSelectFile,
   };
 };

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import {
+  Box,
   Flex,
+  Heading,
   Icon,
   Image,
   Skeleton,
@@ -23,6 +25,7 @@ import {
 } from "react-icons/io5";
 import { Post } from "../../../atoms/postsAtom";
 import Link from "next/link";
+import DOMPurify from "dompurify";
 
 export type PostItemContentProps = {
   post: Post;
@@ -94,6 +97,7 @@ const PostItem: React.FC<PostItemContentProps> = ({
       <Flex
         direction="column"
         align="center"
+        display={{ base: "none", md: "flex" }}
         bg={singlePostView ? "none" : "gray.100"}
         p={2}
         width="40px"
@@ -155,18 +159,35 @@ const PostItem: React.FC<PostItemContentProps> = ({
               </Text>
             </Stack>
           )}
-          <Text fontSize="12pt" fontWeight={600}>
-            {post.title}
-          </Text>
-          <Text fontSize="10pt">{post.body}</Text>
+          {DOMPurify.sanitize(post.title, {
+            USE_PROFILES: { html: true },
+          }) && (
+            <Heading
+              my={2}
+              as={"h1"}
+              size={{ base: "xs", sm: "sm", md: "md" }}
+              noOfLines={2}
+            >
+              {post.title}
+            </Heading>
+          )}
+          {DOMPurify.sanitize(post.body, {
+            USE_PROFILES: { html: true },
+          }) && (
+            <Box
+              noOfLines={6}
+              fontSize={"10pt"}
+              dangerouslySetInnerHTML={{ __html: post.body }}
+            ></Box>
+          )}
+
           {post.imageURL && (
-            <Flex justify="center" align="center" p={2}>
+            <Flex justify="center" align="center" py={2}>
               {loadingImage && (
                 <Skeleton height="200px" width="100%" borderRadius={4} />
               )}
               <Image
-                // width="80%"
-                // maxWidth="500px"
+                
                 maxHeight="460px"
                 src={post.imageURL}
                 display={loadingImage ? "none" : "unset"}
